@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        
+        #chat-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        #chat-box {
+
+            max-width: 600px;
+            padding: 20px;
+            background-color: #a5e9c3;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        #chat {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        #chat-form {
+            display: flex;
+        }
+        
+        #chat-mes {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+        }
+        
+        #send-mes {
+            background-color: #389e60;
+            color: #fff;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        
+        #send-mes:hover {
+            background-color: #beefcc;
+        }
+        
+    </style>
+    <title>Chat</title>
+</head>
+
+<body>
+    <div id="chat-container">
+        <div id="chat-box">
+            <h1>Chat real-time</h1>
+            <ul id="chat"></ul>
+            <form action="" id="chat-form">
+                <input type="text" name="" id="chat-mes">
+                <button id="send-mes">Gửi</button>
+            </form>
+        </div>
+    </div>
+
+
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    //gọi đến sv
+    const socket = io();
+    //nhập tên trước khi vào chat
+    const name = prompt("Tên bạn là gì:");
+    //lấy thông tin của form chat
+    const chatForm = document.querySelector('#chat-form');
+    //lấy thông tin đoạn chat
+    const chatMes = document.querySelector('#chat-mes');
+
+    //khi submit gửi thông tin trong hàm đến sv
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();//không xử lý form
+
+        const message = chatMes.value
+        socket.emit('on-chat', {
+            name: name,
+            message: message
+        })
+        chatMes.value = ' ';
+    })
+
+    //lấy thông tin chat bỏ vào thẻ ul
+    const messages = document.querySelector('#chat');
+    socket.on('user-chat', (message) => {
+        const chatItem = document.createElement('li');
+        chatItem.textContent = message.name + ': ' + message.message;
+
+        messages.appendChild(chatItem);
+
+    })
+
+</script>
+
+</html>

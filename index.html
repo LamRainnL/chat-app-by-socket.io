@@ -11,14 +11,14 @@
             padding: 0;
             background-color: #f8f9fa;
         }
-        
+
         #chat-container {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
-        
+
         #chat-box {
 
             max-width: 600px;
@@ -27,28 +27,28 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
         }
-        
+
         #chat {
             list-style-type: none;
             padding: 0;
         }
-        
+
         #chat-form {
             display: flex;
         }
-        
+
         #chat-mes {
             flex: 1;
             padding: 8px;
             border: 1px solid #ccc;
             border-radius: 5px 0 0 5px;
         }
-        
+
         #send-mes {
             background-color: #389e60;
             color: #fff;
@@ -57,11 +57,10 @@
             padding: 8px 16px;
             cursor: pointer;
         }
-        
+
         #send-mes:hover {
             background-color: #beefcc;
         }
-        
     </style>
     <title>Chat</title>
 </head>
@@ -86,6 +85,7 @@
     const socket = io();
     //nhập tên trước khi vào chat
     const name = prompt("Tên bạn là gì:");
+    socket.emit('join-chat', name);
     //lấy thông tin của form chat
     const chatForm = document.querySelector('#chat-form');
     //lấy thông tin đoạn chat
@@ -96,17 +96,25 @@
         e.preventDefault();//không xử lý form
 
         const message = chatMes.value
+
         socket.emit('on-chat', {
             name: name,
             message: message
         })
         chatMes.value = ' ';
     })
-
-    //lấy thông tin chat bỏ vào thẻ ul
+    // Lắng nghe thông báo "user đã tham gia" từ server
+    socket.on('user-joined', (message) => {
+        // Thêm thông báo vào phần chat
+        const chatItem = document.createElement('li');
+        chatItem.textContent = message;
+        messages.appendChild(chatItem);
+    });
+    //lấy thông tin chat từ server
     const messages = document.querySelector('#chat');
     socket.on('user-chat', (message) => {
         const chatItem = document.createElement('li');
+
         chatItem.textContent = message.name + ': ' + message.message;
 
         messages.appendChild(chatItem);

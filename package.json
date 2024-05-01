@@ -4,10 +4,13 @@
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "emoji": "^0.3.2",
     "express": "^4.19.2",
     "mongodb": "^6.5.0",
     "mongoose": "^8.3.1",
+    "node-emoji": "^2.1.3",
     "socket.io": "^4.7.5",
+    "socketio-file-upload": "^0.7.3",
     "yarn": "^1.22.22"
   }
 }

@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Serve index.html
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/html.html');
+    res.sendFile(__dirname + '/index.html');
 });
 
 // Kết nối đến MongoDB
@@ -22,8 +22,7 @@ MongoClient.connect(url)
     .then(client => {
         console.log("Connected to MongoDB");
 
-        const db = client.db('socket-chat-app'); // Thay 'your-database-name' bằng tên cơ sở dữ liệu của bạn
-
+        const db = client.db('socket-chat-app');//tên database
         // Đăng ký người dùng mới
         app.post('/register', async (req, res) => {
             try {
@@ -35,7 +34,7 @@ MongoClient.connect(url)
                     return res.status(400).json({ message: 'Tên đăng nhập đã tồn tại!' });
                 }
 
-                // Mã hóa mật khẩu
+                // Mã hóa mật khẩu(băm)
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 // Thêm người dùng mới vào cơ sở dữ liệu
@@ -79,19 +78,29 @@ MongoClient.connect(url)
 
 //Khởi tạo khi có người dùng
 io.on('connection',(socket)=>{
-
     socket.on('join-chat', (name) => {
+        socket.username = name;
         console.log(`${name} đã tham gia`);
-
         // Gửi thông báo "user đã tham gia" đến tất cả các người dùng, kèm theo tên của người dùng
         io.emit('user-joined', `${name} đã tham gia`);
     });
     socket.on('on-chat',data=>{
-        io.emit('user-chat', data)
+        //kiểm tra tin nhắn có chứa emoji k
+        const containsEmoji = /[\uD800-\uDFFF]./.test(data.message);
+        io.emit('user-chat', { ...data, containsEmoji });
         // console.log({data})            
     })
-})
-
+    socket.on('send_image', (dataimg) => {
+        //console.log('Received image: ' + data.fileName);no
+        io.emit('receive_image', dataimg);
+      });
+    //xử lý sự kiện ngắt kết nối
+    socket.on('disconnect',(name,reason)=>{
+        if(socket.username){
+            io.emit('user-leave',`${socket.username} đã rời đoạn chat`)
+        }
+    });
+});
 server.listen(8000, () => {
     console.log('Server is running on port 8000');
 });

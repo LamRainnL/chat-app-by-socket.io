@@ -3,10 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Roboto Condensed", sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f8f9fa;
@@ -14,18 +19,25 @@
 
         #chat-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            position: relative;
+            width: 100%;
+            height: 100vh
         }
 
         #chat-box {
-
-            max-width: 600px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            /* Đặt chiều rộng là 80% của parent */
+            max-width: 800px;
+            /* Đặt chiều rộng tối đa */
             padding: 20px;
             background-color: #a5e9c3;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 500px;
         }
 
         h1 {
@@ -40,87 +52,486 @@
 
         #chat-form {
             display: flex;
+            margin-top: 20px;
+            /* Thêm margin để tách biệt form chat với danh sách chat */
         }
 
         #chat-mes {
             flex: 1;
             padding: 8px;
             border: 1px solid #ccc;
-            border-radius: 5px 0 0 5px;
+            border-radius: 15px 15px 15px 15px;
         }
 
         #send-mes {
-            background-color: #389e60;
+            font-size: 24px;
+            background: none;
             color: #fff;
             border: none;
-            border-radius: 0 5px 5px 0;
-            padding: 8px 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            margin-right: 10px;
+        }
+
+        #login-container,
+        #register-container {
+            height: 100vh;
+            background-image: url('images/644fab4db9ca0a124b73d4b7_c40c84ca18d84633a9d86b4046a91437.svg');
+            background-color: #83d7aa;
+        }
+
+        #login-form,
+        #register-form {
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #389e60;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        #btn-dk,
+        #btn-dn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+            /* Đảm bảo padding và border không làm thay đổi kích thước của input và button */
+        }
+
+        #btn-dk,
+        #btn-dn {
+            background-color: #beefcc;
             cursor: pointer;
         }
 
-        #send-mes:hover {
-            background-color: #beefcc;
+        #btn-dk,
+        #btn-dn:hover {
+            background-color: #94d2a2;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        .joined {
+            text-align: center;
+            width: 100%;
+        }
+
+        #chat-box-container {
+            overflow: auto;
+            max-height: 400px;
+            height: 390px;
+        }
+
+        #chat-box-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #emojicontainer {
+            position: relative;
+            display: inline-block;
+        }
+
+        #emojiList {
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 140px;
+            /* Hiển thị lên trên */
+            transform: translateY(-130%);
+            left: calc(50% - 140px);
+            /* Di chuyển sang phía trái 140px */
+        }
+
+        #emojiList button {
+            margin-left: 8px;
+            font-size: 20px;
+            display: inline-block;
+            margin-right: 5px;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        #emoji {
+            font-size: 24px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: none;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        .pull_right {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: flex-end;
+        }
+
+        .mess {
+            display: inline-block;
+            padding: 8px 12px;
+            margin-bottom: 5px
+        }
+
+        .name {
+            font-weight: bold;
+        }
+
+        .pull_left {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        #send-img {
+            display: inline-block;
+            border: none;
+            background: none;
+            margin-right: 8px;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        #chat img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+        }
+
+        .mess_times {
+            background-color: #dff2dc;
+            border-radius: 10px;
+            margin-bottom: 5px;
+        }
+
+        .times {
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .img_times {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 200px;
+            justify-content: right;
+            margin-bottom: 5px;
         }
     </style>
-    <title>Chat</title>
+    <!-- emoji -->
+    <title>Chat App</title>
 </head>
 
 <body>
-    <div id="chat-container">
+    <!-- Phần form đăng nhập -->
+    <div id="login-container">
+        <form id="login-form">
+            <input type="text" id="login-username" placeholder="Tên người dùng" required>
+            <input type="password" id="login-password" placeholder="Mật khẩu" required>
+            <button type="submit" id="btn-dn">Đăng nhập</button>
+            <p>Chưa có tài khoản? <a href="#" id="switch-to-register">Đăng ký</a></p>
+        </form>
+    </div>
+
+    <!-- Phần form đăng ký -->
+    <div id="register-container" style="display: none;">
+        <form id="register-form">
+            <input type="text" id="register-username" placeholder="Tên người dùng" required>
+            <input type="password" id="register-password" placeholder="Mật khẩu" required>
+            <button type="submit" id="btn-dk">Đăng ký</button>
+            <p>Đã có tài khoản? <a href="#" id="switch-to-login">Đăng nhập</a></p>
+        </form>
+    </div>
+
+    <!-- Phần giao diện trò chuyện -->
+    <div id="chat-container" style="display: none;">
         <div id="chat-box">
             <h1>Chat real-time</h1>
-            <ul id="chat"></ul>
-            <form action="" id="chat-form">
-                <input type="text" name="" id="chat-mes">
-                <button id="send-mes">Gửi</button>
+            <div id="chat-box-container">
+                <ul id="chat"></ul>
+            </div>
+            <form action="" id="chat-form" enctype="multipart/form-data">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                <button type="button" id="send-img" onclick="document.getElementById('imageInput').click();"><i
+                        class="fa-regular fa-image"></i></button>
+                <input type="text" name="" id="chat-mes" placeholder="Nhập tin nhắn..">
+                <button id="send-mes"><i class="fa-solid fa-paper-plane"></i>
+                </button>
+                <div id="emojicontainer">
+                    <button id="emoji"><i class="fa-regular fa-face-smile-beam"></i></button>
+                    <ul id="emojiList" style="display: none;"></ul>
+                </div>
             </form>
         </div>
     </div>
 
+    <!-- Script để điều hướng giữa các phần và xử lý đăng nhập/đăng ký -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+    <script>
+        // Chuyển đổi giữa các form đăng nhập và đăng ký
+        document.getElementById('switch-to-register').addEventListener('click', function () {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'block';
+        });
 
-</body>
-<script src="/socket.io/socket.io.js"></script>
-<script>
-    //gọi đến sv
-    const socket = io();
-    //nhập tên trước khi vào chat
-    const name = prompt("Tên bạn là gì:");
-    socket.emit('join-chat', name);
-    //lấy thông tin của form chat
-    const chatForm = document.querySelector('#chat-form');
-    //lấy thông tin đoạn chat
-    const chatMes = document.querySelector('#chat-mes');
+        document.getElementById('switch-to-login').addEventListener('click', function () {
+            document.getElementById('register-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+        });
 
-    //khi submit gửi thông tin trong hàm đến sv
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();//không xử lý form
+        // Hàm hiển thị giao diện trò chuyện
+        function showChat() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'none';
+            document.getElementById('chat-container').style.display = 'block';
+        }
 
-        const message = chatMes.value
+        // Hàm hiển thị form đăng nhập
+        function showLoginForm() {
+            document.getElementById('register-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+        }
+        let name = '';
+        // Xử lý khi form đăng nhập được gửi
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
 
-        socket.emit('on-chat', {
-            name: name,
-            message: message
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    name = username;//lấy tên ngay khi đăng nhập
+                    socket.emit('join-chat', name);//gửi đến sv
+                    showChat(); // Chuyển sang giao diện trò chuyện
+                } else {
+                    alert(data.message); // Hiển thị thông báo lỗi
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('An error occurred during login');
+            }
+        });
+
+        // Xử lý khi form đăng ký được gửi
+        document.getElementById('register-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(data.message); // Hiển thị thông báo thành công
+                    showLoginForm(); // Chuyển sang form đăng nhập
+                } else {
+                    alert(data.message); // Hiển thị thông báo lỗi
+                }
+            } catch (error) {
+                console.error('Error during registration:', error);
+                alert('An error occurred during registration');
+            }
+        });
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        //gọi đến sv
+        const socket = io();
+        //lấy thông tin của form chat
+        const chatForm = document.querySelector('#chat-form');
+        //lấy thông tin đoạn chat
+        const chatMes = document.querySelector('#chat-mes');
+
+        //khi submit gửi thông tin trong hàm đến sv
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();//không xử lý form
+
+            const message = chatMes.value;
+            const timestamp = new Date().toLocaleTimeString();
+            if (!message || message == " ") {
+                alert('Vui lòng nội dung tin nhắn!');
+            }
+            else {
+                socket.emit('on-chat', {
+                    name: name,
+                    message: message,
+                    timestamp: timestamp
+                })
+                chatMes.value = '';
+            }
+
         })
-        chatMes.value = ' ';
-    })
-    // Lắng nghe thông báo "user đã tham gia" từ server
-    socket.on('user-joined', (message) => {
-        // Thêm thông báo vào phần chat
-        const chatItem = document.createElement('li');
-        chatItem.textContent = message;
-        messages.appendChild(chatItem);
-    });
-    //lấy thông tin chat từ server
-    const messages = document.querySelector('#chat');
-    socket.on('user-chat', (message) => {
-        const chatItem = document.createElement('li');
+        // Lắng nghe hông báo "user đã tham gia" từ server
+        socket.on('user-joined', (message) => {
+            // Thêm thông báo vào phần chat
+            const chatItem = document.createElement('li');
+            chatItem.textContent = message;
+            chatItem.classList.add('joined')
+            messages.appendChild(chatItem);
+        });
+        //Lắng nghe khi người dùng rời
+        socket.on('user-leave', (message) => {
+            const chatItem = document.createElement('li');
+            chatItem.textContent = message;
+            chatItem.classList.add('joined');
+            messages.appendChild(chatItem);
+        })
+        // Lấy phần tử chứa danh sách tin nhắn
+        const chatMessagesContainer = document.getElementById('chat-box-container');
 
-        chatItem.textContent = message.name + ': ' + message.message;
+        // Hàm để cuộn xuống cuối danh sách tin nhắn
+        function scrollToBottom() {
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+        //lấy thông tin chat từ server
+        const messages = document.querySelector('#chat');
+        socket.on('user-chat', (message) => {
+            const chatItem = document.createElement('li');
+            const chatItem_1 = document.createElement('span');
+            const div = document.createElement('div');
+            const chatItem_2 = document.createElement('span');
+            const chatItem_3 = document.createElement('span');
+            chatItem_1.textContent = message.name;
+            chatItem_2.textContent = message.message;
+            chatItem_3.textContent = message.timestamp;
+            chatItem_1.classList.add('name');
+            div.classList.add('mess_times')
+            chatItem_2.classList.add('mess');
+            chatItem_3.classList.add('times')
+            if (message.name == name) {
+                chatItem.classList.add('pull_right');
+                chatItem.appendChild(div);
+                div.appendChild(chatItem_2);
+                div.appendChild(chatItem_3);
+                messages.appendChild(chatItem);
+            }
+            else {
+                chatItem.classList.add('pull_left');
+                chatItem.appendChild(chatItem_1);
+                chatItem.appendChild(div);
+                div.appendChild(chatItem_2);
+                div.appendChild(chatItem_3);
+                messages.appendChild(chatItem);
+            }
 
-        messages.appendChild(chatItem);
+            // Cuộn xuống cuối danh sách tin nhắn mỗi khi có tin nhắn mới
+            scrollToBottom();
 
-    })
+        });
+        // Hiển thị hoặc ẩn danh sách emoji khi nhấn nút emoji
+        emoji.addEventListener('click', (e) => {
+            e.preventDefault();
+            const emojiList = document.getElementById('emojiList');
+            if (emojiList.style.display === 'none') {
+                emojiList.style.display = 'flex';
+            } else {
+                emojiList.style.display = 'none';
+            }
+        });
 
-</script>
+        // Lấy danh sách emoji và hiển thị chúng
+        const emojis = [
+            '😊', '❤️', '😂', '👍', '👎', '😍', '😎', '🤔', '🎉', '👏',
+            '🥳', '🙌', '🎊', '🌟', '🔥', '👋', '💖', '🌈', '✨', '💪', '😢'
+        ];
+        const emojiContainer = document.getElementById('emojiList');
+        emojis.forEach(emoji => {
+            const emojiButton = document.createElement('button');
+            emojiButton.textContent = emoji;
+            emojiButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Ngăn sự kiện click từ lan truyền đến phần tử cha
+                chatMes.value += emoji;
+            });
+            emojiContainer.appendChild(emojiButton);
+        });
+        // Hiển thị hoặc ẩn danh sách emoji khi nhấn nút emoji
+        emoji.addEventListener('click', (e) => {
+            e.preventDefault();
+            const emojiList = document.getElementById('emojiList');
+            emojiList.classList.toggle('hidden'); // Thêm hoặc loại bỏ lớp .hidden
+        });
+        //gửi ảnh đến sv khi người dùng chọn
+        document.getElementById('imageInput').addEventListener('change', function () {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                const timestamp = new Date().toLocaleTimeString();
+                reader.onload = function (event) {
+                    var imageData = event.target.result;
+                    socket.emit('send_image', { timestamp: timestamp, image: imageData, fileName: file.name, name: name });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        //hiển thị ảnh trong đoạn chat( client)
+        socket.on('receive_image', function (data) {
+            var img = new Image();
+            img.src = data.image;
+            const chatItem = document.createElement('li');
+            const chatItem_1 = document.createElement('span');
+            const chatItem_times = document.createElement('span')
+            const div = document.createElement('div')
+            chatItem_1.textContent = data.name;
+            chatItem_times.textContent = data.timestamp;
+            chatItem_1.classList.add('name');
+            chatItem_times.classList.add('times');
+            div.classList.add('img_times');
+            if (data.name == name) {
+                chatItem.classList.add('pull_right')
+                chatItem.appendChild(div);
+                div.appendChild(img);
+                div.appendChild(chatItem_times);
+                messages.appendChild(chatItem);
+            }
+            else {
+                chatItem.classList.add('pull_left')
+                chatItem.appendChild(chatItem_1);
+                chatItem.appendChild(div);
+                div.appendChild(img);
+                div.appendChild(chatItem_times);
+                messages.appendChild(chatItem);
+            }
+        });
+
+    </script>
+</body>
 
 </html>

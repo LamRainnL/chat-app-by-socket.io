@@ -253,11 +253,12 @@
         }
 
         #user-list-container {
+            list-style-type: none;
             height: 100px;
             width: 150px;
-            margin-top: -10px;
+            margin-top: -14px;
             position: absolute;
-            background-color: #beefcc;
+            background-color: #fff;
             z-index: 999;
             overflow: auto;
             border-radius: 8px;
@@ -436,7 +437,6 @@
         socket.on('online-users', function (onlineUsers) {
             // Xóa nội dung cũ của phần tử userListContainer
             userListContainer.innerHTML = '';
-
             // Hiển thị danh sách người dùng đang online
             onlineUsers.forEach(function (user) {
                 var listItem = document.createElement('li');
@@ -560,7 +560,7 @@
                 const timestamp = new Date().toLocaleTimeString();
                 reader.onload = function (event) {
                     var imageData = event.target.result;
-                    socket.emit('send _image', { timestamp: timestamp, image: imageData, fileName: file.name, name: name });
+                    socket.emit('send_image', { timestamp: timestamp, image: imageData, fileName: file.name, name: name });
                 };
                 reader.readAsDataURL(file);
             }

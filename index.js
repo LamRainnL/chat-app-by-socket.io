@@ -64,7 +64,7 @@ MongoClient.connect(url)
                 }
                 // Kiểm tra trạng thái đăng nhập của người dùng
                 if (user.isLoggedIn) {
-                    return res.status(403).json({ message: 'User is already logged in' });
+                    return res.status(403).json({ message: 'Tài khoản đang được đăng nhập!' });
                 }
 
                 // Cập nhật trạng thái đăng nhập của người dùng

@@ -236,6 +236,33 @@
             justify-content: right;
             margin-bottom: 5px;
         }
+
+        #user-online {
+            display: flex;
+            height: 50px;
+        }
+
+        #btn-listuseronline {
+            font-size: 24px;
+            background: none;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+            margin-right: 10px;
+        }
+
+        #user-list-container {
+            height: 100px;
+            width: 150px;
+            margin-top: -10px;
+            position: absolute;
+            background-color: #beefcc;
+            z-index: 999;
+            overflow: auto;
+            border-radius: 8px;
+            
+        }
     </style>
     <!-- emoji -->
     <title>Chat App</title>
@@ -265,7 +292,13 @@
     <!-- Phần giao diện trò chuyện -->
     <div id="chat-container" style="display: none;">
         <div id="chat-box">
-            <h1>Chat real-time</h1>
+            <div id="user-online">
+                <button id="btn-listuseronline"><i class="fa-solid fa-list-ul"></i></button>
+                <h1>Chat real-time</h1>
+            </div>
+            <hr class="divider">
+            <ul id="user-list-container" style="display: none;">
+            </ul>
             <div id="chat-box-container">
                 <ul id="chat"></ul>
             </div>
@@ -370,6 +403,7 @@
                 alert('An error occurred during registration');
             }
         });
+
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -379,7 +413,37 @@
         const chatForm = document.querySelector('#chat-form');
         //lấy thông tin đoạn chat
         const chatMes = document.querySelector('#chat-mes');
+        var isUserListVisible = false;
+        const userListContainer = document.querySelector('#user-list-container');
 
+        document.getElementById('btn-listuseronline').addEventListener('click', function () {
+            // Đảo ngược trạng thái hiển thị danh sách người dùng
+            isUserListVisible = !isUserListVisible;
+
+            // Hiển thị hoặc ẩn danh sách người dùng tùy thuộc vào trạng thái mới
+            if (isUserListVisible) {
+                userListContainer.style.display = 'block';
+                // Gửi yêu cầu để lấy danh sách người dùng đang online từ server
+                socket.emit('get-online-users');
+            } else {
+                userListContainer.style.display = 'none';
+                // Xóa nội dung cũ của phần tử userListContainer
+                userListContainer.innerHTML = '';
+            }
+        });
+
+        // Lắng nghe sự kiện trả về danh sách người dùng đang online từ server
+        socket.on('online-users', function (onlineUsers) {
+            // Xóa nội dung cũ của phần tử userListContainer
+            userListContainer.innerHTML = '';
+
+            // Hiển thị danh sách người dùng đang online
+            onlineUsers.forEach(function (user) {
+                var listItem = document.createElement('li');
+                listItem.textContent = user;
+                userListContainer.appendChild(listItem);
+            });
+        });
         //khi submit gửi thông tin trong hàm đến sv
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();//không xử lý form
@@ -496,7 +560,7 @@
                 const timestamp = new Date().toLocaleTimeString();
                 reader.onload = function (event) {
                     var imageData = event.target.result;
-                    socket.emit('send_image', { timestamp: timestamp, image: imageData, fileName: file.name, name: name });
+                    socket.emit('send _image', { timestamp: timestamp, image: imageData, fileName: file.name, name: name });
                 };
                 reader.readAsDataURL(file);
             }

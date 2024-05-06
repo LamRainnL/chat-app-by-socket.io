@@ -15,14 +15,14 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
-
+let db;
 // Kết nối đến MongoDB
 const url = "mongodb+srv://lam208:5iyQvrx4rMYPW386@cluster0.gcqyosi.mongodb.net/?retryWrites=true&w=majority";
 MongoClient.connect(url)
     .then(client => {
         console.log("Connected to MongoDB");
 
-        const db = client.db('socket-chat-app');//tên database
+        db = client.db('socket-chat-app');//tên database
         // Đăng ký người dùng mới
         app.post('/register', async (req, res) => {
             try {
@@ -45,7 +45,7 @@ MongoClient.connect(url)
                 res.status(500).json({ message: 'An error occurred' });
             }
         });
-        
+
         // Đăng nhập
         app.post('/login', async (req, res) => {
             try {
@@ -62,7 +62,16 @@ MongoClient.connect(url)
                 if (!passwordMatch) {
                     return res.status(401).json({ message: 'Incorrect password' });
                 }
+                // Kiểm tra trạng thái đăng nhập của người dùng
+                if (user.isLoggedIn) {
+                    return res.status(403).json({ message: 'User is already logged in' });
+                }
 
+                // Cập nhật trạng thái đăng nhập của người dùng
+                await db.collection('users').updateOne(
+                    { username: username },
+                    { $set: { isLoggedIn: true } }
+                );
                 // Đăng nhập thành công
                 res.status(200).json({ message: 'Login successful', username });
             } catch (err) {
@@ -77,14 +86,23 @@ MongoClient.connect(url)
     });
 
 //Khởi tạo khi có người dùng
-io.on('connection',(socket)=>{
+// Khởi tạo danh sách người dùng đang online
+var onlineUsersMap = new Map();
+io.on('connection', (socket) => {
     socket.on('join-chat', (name) => {
         socket.username = name;
-        console.log(`${name} đã tham gia`);
+        // Kiểm tra xem tài khoản đã đăng nhập từ nơi khác chưa
+        // console.log(`${name} đã tham gia`);
+        // Thêm người dùng vào danh sách người dùng đang online cho kết nối socket hiện tại
+        if (!onlineUsersMap.has(socket.id)) {
+            onlineUsersMap.set(socket.id, new Set());
+        }
+        onlineUsersMap.get(socket.id).add(name);
+
         // Gửi thông báo "user đã tham gia" đến tất cả các người dùng, kèm theo tên của người dùng
         io.emit('user-joined', `${name} đã tham gia`);
     });
-    socket.on('on-chat',data=>{
+    socket.on('on-chat', data => {
         //kiểm tra tin nhắn có chứa emoji k
         const containsEmoji = /[\uD800-\uDFFF]./.test(data.message);
         io.emit('user-chat', { ...data, containsEmoji });
@@ -93,14 +111,42 @@ io.on('connection',(socket)=>{
     socket.on('send_image', (dataimg) => {
         //console.log('Received image: ' + data.fileName);no
         io.emit('receive_image', dataimg);
-      });
-    //xử lý sự kiện ngắt kết nối
-    socket.on('disconnect',(name,reason)=>{
-        if(socket.username){
-            io.emit('user-leave',`${socket.username} đã rời đoạn chat`)
+    });
+    //Xử lý sự kiện ngắt kết nối
+    socket.on('disconnect', () => {
+        const username = socket.username;
+        if (username && onlineUsersMap.has(socket.id)) {
+            // Nếu người dùng đã đăng nhập từ kết nối hiện tại, mới xóa khỏi danh sách
+            // Loại bỏ người dùng khỏi danh sách người dùng đang online cho kết nối socket hiện tại
+            onlineUsersMap.get(socket.id).delete(username);
+            io.emit('user-leave', `${username} đã rời đoạn chat`);
+            // Cập nhật trạng thái đăng nhập của người dùng trong MongoDB thành false
+            if (db) {
+                db.collection('users').updateOne(
+                    { username },
+                    { $set: { isLoggedIn: false } },
+                    (err, result) => {
+                        if (err) {
+                            console.error(`Error updating user ${username} status:`, err);
+                        } else {
+                            console.log(`User ${username} logged out`);
+                        }
+                    }
+                );
+            } else {
+                console.error('Database connection not available');
+            }
         }
     });
+    // Xử lý yêu cầu để lấy danh sách người dùng đang online từ client
+    socket.on('get-online-users', function () {
+        // Lấy danh sách người dùng đang online cho kết nối socket hiện tại
+        const allOnlineUsers = Array.from(onlineUsersMap.values()).flatMap(users => Array.from(users));
+        // Gửi danh sách người dùng đang online về cho client
+        socket.emit('online-users', Array.from(allOnlineUsers));
+    });
 });
+
 server.listen(8000, () => {
     console.log('Server is running on port 8000');
 });

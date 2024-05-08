@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -24,22 +26,6 @@
             height: 100vh
         }
 
-        #chat-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            /* Đặt chiều rộng là 80% của parent */
-            max-width: 800px;
-            /* Đặt chiều rộng tối đa */
-            padding: 20px;
-            background-color: #a5e9c3;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            height: 500px;
-        }
-
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
@@ -53,14 +39,26 @@
         #chat-form {
             display: flex;
             margin-top: 20px;
-            /* Thêm margin để tách biệt form chat với danh sách chat */
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+
+        #input-container {
+            flex: 1;
         }
 
         #chat-mes {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 15px 15px 15px 15px;
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        #chat-mes:focus {
+            outline: none;
+            /*oại bỏ viền khi nhập*/
         }
 
         #send-mes {
@@ -71,12 +69,16 @@
             cursor: pointer;
             margin-bottom: 10px;
             margin-right: 10px;
+            margin-top: 8px;
+        }
+
+        #send-mes i {
+            transform: rotate(50deg);
         }
 
         #login-container,
         #register-container {
             height: 100vh;
-            background-image: url('images/644fab4db9ca0a124b73d4b7_c40c84ca18d84633a9d86b4046a91437.svg');
             background-color: #83d7aa;
         }
 
@@ -128,6 +130,7 @@
             overflow: auto;
             max-height: 400px;
             height: 390px;
+            padding: 8px;
         }
 
         #chat-box-container::-webkit-scrollbar {
@@ -177,6 +180,8 @@
             background: none;
             padding: 0;
             margin-left: 10px;
+            margin-bottom: 10px;
+            margin-right: 30px;
         }
 
         .pull_right {
@@ -210,6 +215,7 @@
             margin-right: 8px;
             font-size: 24px;
             margin-bottom: 8px;
+            margin-top: 8px;
         }
 
         #chat img {
@@ -237,32 +243,57 @@
             margin-bottom: 5px;
         }
 
-        #user-online {
-            display: flex;
-            height: 50px;
-        }
-
-        #btn-listuseronline {
-            font-size: 24px;
-            background: none;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            margin-bottom: 10px;
-            margin-right: 10px;
-        }
-
         #user-list-container {
             list-style-type: none;
-            height: 100px;
-            width: 150px;
-            margin-top: -14px;
-            position: absolute;
-            background-color: #fff;
-            z-index: 999;
             overflow: auto;
+            max-height: 200px;
+        }
+
+        #container-users {
+            display: flex;
+            background-color: #a5e9c3;
             border-radius: 8px;
-            
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        #users-online {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            /* Căn chỉnh các phần tử con theo lề trái */
+            border-right: 1px solid #ccc;
+            background-color: #f0f0f0;
+            padding: 0;
+            width: 100%;
+        }
+
+        #user-list-container li {
+            margin-bottom: 5px;
+            font-weight: bold;
+            text-align: left;
+            /* Thay đổi thành right nếu muốn căn phải */
+        }
+
+        #user-list-container li:hover {
+            background-color: #f0f0f0;
+            /* Hoặc thay đổi màu chữ */
+        }
+
+        #users-online h2 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        #chat-box {
+            flex: 4;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
     </style>
     <!-- emoji -->
@@ -292,29 +323,40 @@
 
     <!-- Phần giao diện trò chuyện -->
     <div id="chat-container" style="display: none;">
-        <div id="chat-box">
-            <div id="user-online">
-                <button id="btn-listuseronline"><i class="fa-solid fa-list-ul"></i></button>
-                <h1>Chat real-time</h1>
+        <div id="container-users">
+            <div id="users-online">
+                <h2>Online Users <span id="online-count"></span></h2>
+                <ul id="user-list-container"></ul>
             </div>
-            <hr class="divider">
-            <ul id="user-list-container" style="display: none;">
-            </ul>
-            <div id="chat-box-container">
-                <ul id="chat"></ul>
-            </div>
-            <form action="" id="chat-form" enctype="multipart/form-data">
-                <input type="file" id="imageInput" accept="image/*" style="display: none;">
-                <button type="button" id="send-img" onclick="document.getElementById('imageInput').click();"><i
-                        class="fa-regular fa-image"></i></button>
-                <input type="text" name="" id="chat-mes" placeholder="Nhập tin nhắn..">
-                <button id="send-mes"><i class="fa-solid fa-paper-plane"></i>
-                </button>
-                <div id="emojicontainer">
-                    <button id="emoji"><i class="fa-regular fa-face-smile-beam"></i></button>
-                    <ul id="emojiList" style="display: none;"></ul>
+            <div id="chat-box">
+                <h1 style="border-bottom: 1px solid black;">Chat real-time</h1>
+                <div id="chat-box-container">
+                    <ul id="chat"></ul>
                 </div>
-            </form>
+                <form action="" id="chat-form" enctype="multipart/form-data">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <button type="button" id="send-img" onclick="document.getElementById('imageInput').click();">
+                        <span class="material-symbols-outlined" style="font-size: 30px;">
+                            imagesmode
+                        </span>
+                    </button>
+                    <div id="input-container">
+                        <input type="text" name="" id="chat-mes" placeholder="Nhập tin nhắn..">
+                    </div>
+                    <button id="send-mes">
+                        <span class="material-symbols-outlined" style="font-size: 38px;color:#333;">
+                            send
+                        </span>
+                    </button>
+                    <div id="emojicontainer">
+                        <button id="emoji"><span class="material-symbols-outlined" style="font-size: 30px;">
+                            mood
+                            </span>
+                        </button>
+                        <ul id="emojiList" style="display: none;"></ul>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -415,34 +457,21 @@
         //lấy thông tin đoạn chat
         const chatMes = document.querySelector('#chat-mes');
         var isUserListVisible = false;
+
         const userListContainer = document.querySelector('#user-list-container');
-
-        document.getElementById('btn-listuseronline').addEventListener('click', function () {
-            // Đảo ngược trạng thái hiển thị danh sách người dùng
-            isUserListVisible = !isUserListVisible;
-
-            // Hiển thị hoặc ẩn danh sách người dùng tùy thuộc vào trạng thái mới
-            if (isUserListVisible) {
-                userListContainer.style.display = 'block';
-                // Gửi yêu cầu để lấy danh sách người dùng đang online từ server
-                socket.emit('get-online-users');
-            } else {
-                userListContainer.style.display = 'none';
-                // Xóa nội dung cũ của phần tử userListContainer
-                userListContainer.innerHTML = '';
-            }
-        });
-
         // Lắng nghe sự kiện trả về danh sách người dùng đang online từ server
         socket.on('online-users', function (onlineUsers) {
             // Xóa nội dung cũ của phần tử userListContainer
             userListContainer.innerHTML = '';
             // Hiển thị danh sách người dùng đang online
             onlineUsers.forEach(function (user) {
-                var listItem = document.createElement('li');
+                const listItem = document.createElement('li');
                 listItem.textContent = user;
                 userListContainer.appendChild(listItem);
             });
+            //đếm người online
+            const countOnline = document.getElementById('online-count');
+            countOnline.textContent = '(' + onlineUsers.length + ')';
         });
         //khi submit gửi thông tin trong hàm đến sv
         chatForm.addEventListener('submit', (e) => {

@@ -98,7 +98,10 @@ io.on('connection', (socket) => {
             onlineUsersMap.set(socket.id, new Set());
         }
         onlineUsersMap.get(socket.id).add(name);
-
+        // Lấy danh sách người dùng đang online cho kết nối socket hiện tại
+        const allOnlineUsers = Array.from(onlineUsersMap.values()).flatMap(users => Array.from(users));
+        // Gửi danh sách người dùng đang online về cho client
+        io.emit('online-users', Array.from(allOnlineUsers));
         // Gửi thông báo "user đã tham gia" đến tất cả các người dùng, kèm theo tên của người dùng
         io.emit('user-joined', `${name} đã tham gia`);
     });
@@ -119,6 +122,7 @@ io.on('connection', (socket) => {
             // Nếu người dùng đã đăng nhập từ kết nối hiện tại, mới xóa khỏi danh sách
             // Loại bỏ người dùng khỏi danh sách người dùng đang online cho kết nối socket hiện tại
             onlineUsersMap.get(socket.id).delete(username);
+
             io.emit('user-leave', `${username} đã rời đoạn chat`);
             // Cập nhật trạng thái đăng nhập của người dùng trong MongoDB thành false
             if (db) {
@@ -137,6 +141,10 @@ io.on('connection', (socket) => {
                 console.error('Database connection not available');
             }
         }
+        // Lấy danh sách người dùng đang online cho kết nối socket hiện tại
+        const allOnlineUsers = Array.from(onlineUsersMap.values()).flatMap(users => Array.from(users));
+        // Gửi danh sách người dùng đang online về cho client
+        io.emit('online-users', Array.from(allOnlineUsers));
     });
     // Xử lý yêu cầu để lấy danh sách người dùng đang online từ client
     socket.on('get-online-users', function () {

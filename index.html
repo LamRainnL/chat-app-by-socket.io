@@ -267,6 +267,7 @@
             background-color: #f0f0f0;
             padding: 0;
             width: 100%;
+            height: 100%;
         }
 
         #user-list-container li {
@@ -294,6 +295,30 @@
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
+        }
+
+        span:hover {
+            background-color: #ccc;
+            border-radius: 5px;
+        }
+
+        #current-user {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-align: center;
+            /* Căn giữa văn bản */
+            margin-top: auto;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        #current-user button {
+            background: none;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
         }
     </style>
     <!-- emoji -->
@@ -327,6 +352,11 @@
             <div id="users-online">
                 <h2>Online Users <span id="online-count"></span></h2>
                 <ul id="user-list-container"></ul>
+                <div id="current-user">Bạn: <span id="user-name"></span> <button id="logout-button"><span
+                            class="material-symbols-outlined" style="font-size: 22px;">
+                            logout
+                        </span></button></div>
+
             </div>
             <div id="chat-box">
                 <h1 style="border-bottom: 1px solid black;">Chat real-time</h1>
@@ -334,10 +364,17 @@
                     <ul id="chat"></ul>
                 </div>
                 <form action="" id="chat-form" enctype="multipart/form-data">
-                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <input type="file" id="imageInput" name="image" accept="image/*" multiple style="display: none;">
                     <button type="button" id="send-img" onclick="document.getElementById('imageInput').click();">
+                        <span class="material-symbols-outlined">
+                            photo_library
+                        </span>
+                    </button>
+                    <input type="file" id="fileInput" name="file" accept=".csv,.pdf,.docx" multiple
+                        style="display: none;">
+                    <button type="button" id="send-file" onclick="document.getElementById('fileInput').click();">
                         <span class="material-symbols-outlined" style="font-size: 30px;">
-                            imagesmode
+                            attach_file
                         </span>
                     </button>
                     <div id="input-container">
@@ -350,7 +387,7 @@
                     </button>
                     <div id="emojicontainer">
                         <button id="emoji"><span class="material-symbols-outlined" style="font-size: 30px;">
-                            mood
+                                mood
                             </span>
                         </button>
                         <ul id="emojiList" style="display: none;"></ul>
@@ -409,6 +446,8 @@
                     name = username;//lấy tên ngay khi đăng nhập
                     socket.emit('join-chat', name);//gửi đến sv
                     showChat(); // Chuyển sang giao diện trò chuyện
+                    document.getElementById('user-name').textContent = name;// Hiển thị tên người dùng hiện tại
+
                 } else {
                     alert(data.message); // Hiển thị thông báo lỗi
                 }
@@ -456,6 +495,8 @@
         const chatForm = document.querySelector('#chat-form');
         //lấy thông tin đoạn chat
         const chatMes = document.querySelector('#chat-mes');
+        const timestamp = new Date().toLocaleTimeString();
+
         var isUserListVisible = false;
 
         const userListContainer = document.querySelector('#user-list-container');
@@ -463,22 +504,23 @@
         socket.on('online-users', function (onlineUsers) {
             // Xóa nội dung cũ của phần tử userListContainer
             userListContainer.innerHTML = '';
-            // Hiển thị danh sách người dùng đang online
+            // Hiển thị người dùng trực tuyến khác
             onlineUsers.forEach(function (user) {
-                const listItem = document.createElement('li');
-                listItem.textContent = user;
-                userListContainer.appendChild(listItem);
+                if (user !== name) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = user;
+                    userListContainer.appendChild(listItem);
+                }
             });
             //đếm người online
             const countOnline = document.getElementById('online-count');
-            countOnline.textContent = '(' + onlineUsers.length + ')';
+            countOnline.textContent = '(' + (onlineUsers.length - 1) + ')';
         });
         //khi submit gửi thông tin trong hàm đến sv
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();//không xử lý form
 
             const message = chatMes.value;
-            const timestamp = new Date().toLocaleTimeString();
             if (!message || message == " ") {
                 alert('Vui lòng nội dung tin nhắn!');
             }
@@ -583,21 +625,85 @@
         });
         //gửi ảnh đến sv khi người dùng chọn
         document.getElementById('imageInput').addEventListener('change', function () {
-            var file = this.files[0];
-            if (file) {
-                var reader = new FileReader();
-                const timestamp = new Date().toLocaleTimeString();
-                reader.onload = function (event) {
-                    var imageData = event.target.result;
-                    socket.emit('send_image', { timestamp: timestamp, image: imageData, fileName: file.name, name: name });
-                };
-                reader.readAsDataURL(file);
+            const files = this.files;
+            if (files.length === 0) {
+                return; // Không có file nào được chọn
             }
+
+            const formData = new FormData();
+            formData.append('image', files);
+            formData.append('timestamp', timestamp);
+            formData.append('name', name); // Thêm tên người gửi vào form data
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.startsWith('image/')) {
+                    alert(`Loại tệp ${file.type} không phải là hình ảnh!`);
+                    continue;
+                }
+                formData.append('image', file);
+            }
+
+            fetch('/upload_image', {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Lỗi tải lên hình ảnh');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log(data.message); // In ra thông báo thành công
+                })
+                .catch((error) => {
+                    console.error('Lỗi:', error);
+                    alert(error.message); // Hiển thị thông báo lỗi cho người dùng
+                });
         });
-        //hiển thị ảnh trong đoạn chat( client)
-        socket.on('receive_image', function (data) {
-            var img = new Image();
-            img.src = data.image;
+
+        //gửi file khác đến sv khi người dùng chọn
+        document.getElementById('fileInput').addEventListener('change', function () {
+            const files = this.files;
+            if (files.length === 0) {
+                return; // Không có file nào được chọn
+            }
+
+            const formData = new FormData();
+            formData.append('file', files);
+            formData.append('timestamp', timestamp);
+            formData.append('name', name); // Thêm tên người gửi vào form data
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const allowedTypes = ['.csv', '.pdf', '.docx'];
+                if (!allowedTypes.some((type) => file.name.endsWith(type))) {
+                    alert(`Loại tệp ${file.name} không được phép!`);
+                    continue;
+                }
+                formData.append('file', file);
+            }
+
+            fetch('/upload_file', {
+                method: 'POST',
+                body: formData,
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Lỗi tải lên tệp');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    console.log(data.message); // In ra thông báo thành công
+                })
+                .catch((error) => {
+                    console.error('Lỗi:', error);
+                    alert(error.message); // Hiển thị thông báo lỗi cho người dùng
+                });
+        });
+
+        //hiển thị ảnh/file trong đoạn chat( client)
+        socket.on('receive_file', function (data) {
             const chatItem = document.createElement('li');
             const chatItem_1 = document.createElement('span');
             const chatItem_times = document.createElement('span')
@@ -607,23 +713,43 @@
             chatItem_1.classList.add('name');
             chatItem_times.classList.add('times');
             div.classList.add('img_times');
-            if (data.name == name) {
+
+            if (data.fileType.startsWith('image/')) {
+                // Xử lý hình ảnh
+                var img = new Image();
+                img.src = data.downloadUrl;
+                div.appendChild(img);
+            } else {
+                // Xử lý các loại tệp khác
+                const link = document.createElement('a');
+                link.href = data.downloadUrl; // Sử dụng data URL trực tiếp
+                link.download = data.fileName;
+                link.textContent = data.fileName;
+                div.appendChild(link);
+            }
+
+            if (data.name === name) {
                 chatItem.classList.add('pull_right')
                 chatItem.appendChild(div);
-                div.appendChild(img);
                 div.appendChild(chatItem_times);
                 messages.appendChild(chatItem);
-            }
-            else {
+            } else {
                 chatItem.classList.add('pull_left')
                 chatItem.appendChild(chatItem_1);
                 chatItem.appendChild(div);
-                div.appendChild(img);
                 div.appendChild(chatItem_times);
                 messages.appendChild(chatItem);
             }
         });
-
+        socket.on('upload_error', (data) => {
+            alert(data.message); // Hiển thị thông báo lỗi cho người dùng
+        });
+        document.getElementById('logout-button').addEventListener('click', function () {
+            socket.emit('logout'); // Gửi sự kiện logout đến server
+        });
+        socket.on('logged_out', () => {
+            showLoginForm(); // Chuyển hướng đến trang đăng nhập
+        });
     </script>
 </body>
 
